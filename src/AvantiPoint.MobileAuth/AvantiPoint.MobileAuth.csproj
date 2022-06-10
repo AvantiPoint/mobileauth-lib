@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Description>The MobileAuth Library is designed to quickly stand up an OAuth endpoint for Apple, Google, &amp; Microsoft providers with the flexibility of customizing additional ones or only providing ones that you provide a configuration for. This makes it easy to stand up a minimal API with only a few lines of code.</Description>
+    <PackageTags>apple;google;microsoft;oauth;minimal api</PackageTags>
+    <EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="AspNet.Security.OAuth.Apple" Version="6.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="6.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="6.0.5" />
+  </ItemGroup>
+</Project>
