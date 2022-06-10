@@ -25,7 +25,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // maps https://{host}/mobileauth/{Apple|Google|Microsoft}
-app.MapOAuthRoute();
+app.MapMobileAuthRoute();
 
 app.Run();
 

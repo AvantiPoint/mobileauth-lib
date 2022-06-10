@@ -12,7 +12,7 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 
 // maps https://{host}/mobileauth/{Apple|Google|Microsoft}
-app.MapOAuthRoute();
+app.MapMobileAuthRoute();
 
 app.Run();
 ```

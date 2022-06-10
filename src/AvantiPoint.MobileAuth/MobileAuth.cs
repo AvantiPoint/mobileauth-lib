@@ -43,7 +43,7 @@ public static class MobileAuth
         return appBuilder;
     }
 
-    public static WebApplication MapOAuthRoute(this WebApplication app, string routePrefix = "mobileauth", string name = "signin")
+    public static WebApplication MapMobileAuthRoute(this WebApplication app, string routePrefix = "mobileauth", string name = "signin")
     {
         app.MapGet($"{routePrefix}/{{scheme}}", Signin)
            .Produces(302)
