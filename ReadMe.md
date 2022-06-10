@@ -59,8 +59,23 @@ Once you have the Key, it should have downloaded with a file name like `AuthKey_
 
 When you're done you'll want to go back to the Identifiers and toggle from `App IDs` to `Service IDs`. You will need to create a the Service Id for your App as `com.example.myapp.sid` which you saw in the Grouped App Id, you will naturally provide this as the Service Id in your configuration. Again enable the `Sign In with Apple` capability, and this time when you configure it, it will prompt you for a host name and callback. Apple will NOT allow you to use localhost as an authorized host. You must deploy this or update your hosts file have something like `myapp.com` mapped back to `127.0.0.1`. You can then use `myapp.com` as an authorized host where the callback is `https://myapp.com/signin-apple`.
 
-> NOTE: 
+> NOTE:
 > Be sure the generated key is in the `App_Data` directory with the name `AuthKey_{Your KeyId}.p8`.
+
+To provide additional flexibility you can provide values for the following optional configuration values:
+
+```json
+{
+  "OAuth": {
+    "Apple": {
+      "PrivateKey": "{The text value for your private key}", // Recommended for development only
+      "UseAzureKeyVault": true // Optional, defaults to false
+    }
+  }
+}
+```
+
+When using Azure Key Vault we will only update the Apple Registration to ensure that your p8 is loaded from the Azure Key Vault however you will still need to properly configure your application to [connect to the Azure Key Vault](https://docs.microsoft.com/en-us/aspnet/core/security/key-vault-configuration?view=aspnetcore-6.0&WT.mc_id=DT-MVP-5002924).
 
 ### Google / Microsoft Configuration
 
@@ -68,8 +83,6 @@ Microsoft actually has decent docs on this please see:
 
 - [Google](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/social/google-logins?view=aspnetcore-6.0&WT.mc_id=DT-MVP-5002924) - To get your client id and secret go to [Google API & Services](https://console.cloud.google.com/apis/credentials)
 - [Microsoft](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/social/microsoft-logins?view=aspnetcore-6.0&WT.mc_id=DT-MVP-5002924) - To get your client id & secret [create an Application in Azure](https://go.microsoft.com/fwlink/?linkid=2083908&WT.mc_id=DT-MVP-5002924)
-
-
 
 Again once you've got your Client Id & Client Secret you simply need to provide them in your configuration when using this library.
 
