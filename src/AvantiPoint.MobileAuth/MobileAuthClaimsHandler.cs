@@ -28,7 +28,7 @@ public class MobileAuthClaimsHandler : IMobileAuthClaimsHandler
     {
         if (claims.TryGetValue("name", out var name) && !string.IsNullOrEmpty(name))
             return;
-        else if (claims.TryGetValue("surname", out var surname) && claims.TryGetValue("givenname", out var givenname) && !string.IsNullOrEmpty(surname) && !string.IsNullOrEmpty(givenname))
+        else if (claims.TryGetValue("surname", out var surname) && claims.TryGetValue("given_name", out var givenname) && !string.IsNullOrEmpty(surname) && !string.IsNullOrEmpty(givenname))
             claims["name"] = $"{givenname} {surname}".Trim();
     }
 
@@ -37,7 +37,7 @@ public class MobileAuthClaimsHandler : IMobileAuthClaimsHandler
         {
             { "email", auth.Principal.FindFirstValue(ClaimTypes.Email) },
             { "name", auth.Principal.FindFirstValue(ClaimTypes.Name) },
-            { "givenname", auth.Principal.FindFirstValue(ClaimTypes.GivenName) },
+            { "given_name", auth.Principal.FindFirstValue(ClaimTypes.GivenName) },
             { "surname", auth.Principal.FindFirstValue(ClaimTypes.Surname) },
             { "provider_id", auth.Principal.FindFirstValue(ClaimTypes.NameIdentifier) }
         };

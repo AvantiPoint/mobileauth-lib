@@ -74,6 +74,20 @@ public static class MobileAuth
             return;
         }
 
+        var options = context.RequestServices.GetRequiredService<OAuthLibraryOptions>();
+        if(string.IsNullOrEmpty(options.CallbackScheme))
+        {
+            context.Response.StatusCode = 204;
+            context.Response.Headers.Add("Status", "No Callback Scheme is configured");
+            await context.Response.WriteAsJsonAsync(new HttpValidationProblemDetails
+            {
+                Title = "No Callback Scheme is configured",
+                Status = 204,
+                Detail = "The web application has not been configured with a proper callback scheme. Please check your app's configuration.",
+            });
+            return;
+        }
+
         var provider = context.RequestServices.GetRequiredService<IAuthenticationSchemeProvider>();
         var schemes = await provider.GetAllSchemesAsync();
         if(schemes is null || !schemes.Any(x => x.Name != CookieAuthenticationDefaults.AuthenticationScheme))
@@ -111,21 +125,24 @@ public static class MobileAuth
             || string.IsNullOrEmpty(auth.Properties.GetTokenValue("access_token")))
         {
             // Not authenticated, challenge
-            await context.ChallengeAsync(scheme);
+            await context.ChallengeAsync(authenticationScheme.Name);
             return;
         }
 
         var handler = context.RequestServices.GetRequiredService<IMobileAuthClaimsHandler>();
         var claims = await handler.GenerateClaims(context, auth, scheme);
 
-        var qs = claims.Where(x => !string.IsNullOrEmpty(x.Value) && x.Value != "-1")
-            .Select(kvp => $"{WebUtility.UrlEncode(kvp.Key)}={WebUtility.UrlEncode(kvp.Value)}");
-
         // Build the result url
-        var options = context.RequestServices.GetRequiredService<OAuthLibraryOptions>();
-        var url = $"{options.CallbackScheme}://#{string.Join("&", qs)}";
+        var url = GetRedirectUri(options.CallbackScheme, claims);
 
         // Redirect to final url
         context.Response.Redirect(url);
+    }
+
+    private static string GetRedirectUri(string callbackScheme, Dictionary<string, string> claims)
+    {
+        var qs = claims.Where(x => !string.IsNullOrEmpty(x.Value) && x.Value != "-1")
+            .Select(kvp => $"{kvp.Key}={kvp.Value}");
+        return $"{callbackScheme}://#{string.Join("&", qs)}";
     }
 }
