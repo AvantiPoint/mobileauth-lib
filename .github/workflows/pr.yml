@@ -1,0 +1,22 @@
+name: Mobile Auth PR Validation
+
+on:
+  pull_request:
+    branches: [ master ]
+    paths:
+      - "*.props"
+      - "sample/**"
+      - "src/**"
+      - "version.json"
+      - ".github/workflows/ci.yml"
+
+jobs:
+  build:
+    uses: avantipoint/workflow-templates/.github/workflows/dotnet-build.yml@master
+    permissions:
+      statuses: write
+      checks: write
+    with:
+      name: Mobile Auth
+      solution-path: AvantiPoint.MobileAuth.sln
+      run-tests: false
