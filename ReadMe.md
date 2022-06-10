@@ -66,8 +66,10 @@ When you're done you'll want to go back to the Identifiers and toggle from `App 
 
 Microsoft actually has decent docs on this please see:
 
-- [Google](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/social/google-logins?view=aspnetcore-6.0&WT.mc_id=DT-MVP-5002924)
-- [Microsoft](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/social/microsoft-logins?view=aspnetcore-6.0&WT.mc_id=DT-MVP-5002924)
+- [Google](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/social/google-logins?view=aspnetcore-6.0&WT.mc_id=DT-MVP-5002924) - To get your client id and secret go to [Google API & Services](https://console.cloud.google.com/apis/credentials)
+- [Microsoft](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/social/microsoft-logins?view=aspnetcore-6.0&WT.mc_id=DT-MVP-5002924) - To get your client id & secret [create an Application in Azure](https://go.microsoft.com/fwlink/?linkid=2083908&WT.mc_id=DT-MVP-5002924)
+
+
 
 Again once you've got your Client Id & Client Secret you simply need to provide them in your configuration when using this library.
 
