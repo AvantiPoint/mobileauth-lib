@@ -45,10 +45,14 @@ public static class MobileAuth
 
     public static WebApplication MapMobileAuthRoute(this WebApplication app, string routePrefix = "mobileauth", string name = "signin")
     {
+        if (routePrefix.EndsWith('/'))
+            routePrefix = routePrefix.Substring(0, routePrefix.Length - 1);
+
         app.MapGet($"{routePrefix}/{{scheme}}", Signin)
            .Produces(302)
            .ProducesProblem(204)
            .ProducesProblem(404)
+           .AllowAnonymous()
            .WithName(name)
            .WithDisplayName(name);
 
@@ -63,6 +67,12 @@ public static class MobileAuth
         {
             context.Response.StatusCode = 204;
             context.Response.Headers.Add("Status", "No Authentication Schemes are configured");
+            await context.Response.WriteAsJsonAsync(new HttpValidationProblemDetails
+            {
+                Title = "No Authentication Schemes Available",
+                Status = 204,
+                Detail = "The web application has not been configured with any Authentication Providers. Please check your app's configuration.",
+            });
             return;
         }
 
@@ -71,6 +81,12 @@ public static class MobileAuth
         if(authenticationScheme is null)
         {
             context.Response.StatusCode = 404;
+            await context.Response.WriteAsJsonAsync(new HttpValidationProblemDetails
+            {
+                Title = "Authentication Scheme not found",
+                Status = 404,
+                Detail = $"The web application has not been configured with the scheme '{scheme}'.",
+            });
             return;
         }
 
