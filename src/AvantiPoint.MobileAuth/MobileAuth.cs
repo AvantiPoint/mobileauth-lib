@@ -61,9 +61,22 @@ public static class MobileAuth
 
     private static async Task Signin(string scheme, HttpContext context)
     {
+        if(scheme.Equals(CookieAuthenticationDefaults.AuthenticationScheme, StringComparison.InvariantCultureIgnoreCase))
+        {
+            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            context.Response.Headers.Add("Status", "Unsupported Scheme");
+            await context.Response.WriteAsJsonAsync(new HttpValidationProblemDetails
+            {
+                Title = "Unsupported Scheme",
+                Status = context.Response.StatusCode,
+                Detail = "The Specified Scheme is not supported."
+            });
+            return;
+        }
+
         var provider = context.RequestServices.GetRequiredService<IAuthenticationSchemeProvider>();
         var schemes = await provider.GetAllSchemesAsync();
-        if(schemes is null || !schemes.Any())
+        if(schemes is null || !schemes.Any(x => x.Name != CookieAuthenticationDefaults.AuthenticationScheme))
         {
             context.Response.StatusCode = 204;
             context.Response.Headers.Add("Status", "No Authentication Schemes are configured");

@@ -10,6 +10,8 @@ builder.AddMobileAuth();
 var app = builder.Build();
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
 // maps https://{host}/mobileauth/{Apple|Google|Microsoft}
 app.MapMobileAuthRoute();
