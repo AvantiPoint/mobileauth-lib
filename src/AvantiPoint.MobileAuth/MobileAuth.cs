@@ -1,12 +1,16 @@
-﻿using System.Net;
+using System.Net;
+using AvantiPoint.MobileAuth.Authentication;
 using AvantiPoint.MobileAuth.Configuration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AvantiPoint.MobileAuth;
 
@@ -27,16 +31,34 @@ public static class MobileAuth
         var authBuilder = appBuilder.Services
             .AddAuthentication(o =>
             {
-                o.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                o.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                o.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             })
-            .AddCookie();
+            .AddCookie(o =>
+            {
+                o.LoginPath = "/mobileauth/";
+            });
+        authBuilder.AddScheme<JwtBearerOptions, MobileJwtValidationHandler>(JwtBearerDefaults.AuthenticationScheme, null, options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                };
+            })
+            .Services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<JwtBearerOptions>, JwtBearerPostConfigureOptions>());
         options.Apple?.Configure(authBuilder, appBuilder);
         options.Google?.Configure(authBuilder);
         options.Microsoft?.Configure(authBuilder);
 
-        appBuilder.Services.AddAuthorization();
-        appBuilder.Services.AddSingleton(options);
+        appBuilder.Services.AddAuthorization()
+            .AddSingleton(options)
+            .AddHttpContextAccessor();
+
         appBuilder.Services.TryAddScoped<IMobileAuthClaimsHandler, MobileAuthClaimsHandler>();
+        appBuilder.Services.TryAddScoped<ITokenService, TokenService>();
 
         configureAuthenticationBuilder(authBuilder);
 
@@ -131,9 +153,22 @@ public static class MobileAuth
 
         var handler = context.RequestServices.GetRequiredService<IMobileAuthClaimsHandler>();
         var claims = await handler.GenerateClaims(context, auth, scheme);
+        if(!claims.Any())
+        {
+            context.Response.StatusCode = 401;
+            return;
+        }
+
+        var tokenService = context.RequestServices.GetRequiredService<ITokenService>();
+        var outputClaims = new Dictionary<string, string>
+        {
+            { "access_token", tokenService.BuildToken(claims) },
+            { "id_token", claims.ContainsKey("id_token") ? claims["id_token"] : string.Empty },
+            { "expires_in", claims["expires_in"] }
+        };
 
         // Build the result url
-        var url = GetRedirectUri(options.CallbackScheme, claims);
+        var url = GetRedirectUri(options.CallbackScheme, outputClaims);
 
         // Redirect to final url
         context.Response.Redirect(url);
@@ -143,6 +178,6 @@ public static class MobileAuth
     {
         var qs = claims.Where(x => !string.IsNullOrEmpty(x.Value) && x.Value != "-1")
             .Select(kvp => $"{kvp.Key}={kvp.Value}");
-        return $"{callbackScheme}://#{string.Join("&", qs)}";
+        return $"{callbackScheme}://auth?{string.Join("&", qs)}";
     }
 }

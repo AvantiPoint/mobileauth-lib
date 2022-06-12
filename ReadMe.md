@@ -21,12 +21,13 @@ app.Run();
 
 ## Configuration
 
-The only required part of the configuration is the CallbackScheme. This can be anything you want and will be used in the redirect url. Note the redirect url will be formatted as `{CallbackScheme}://#{claims}`. This is meant to be used with the Xamarin or Maui Essentials WebAuthenticator.
+The only required part of the configuration is the CallbackScheme. This can be anything you want and will be used in the redirect url. Note the redirect url will be formatted as `{CallbackScheme}://auth?access_token={jwt}&expires_in={expires timestamp in Unix Seconds}`. This is meant to be used with the Xamarin or Maui Essentials WebAuthenticator.
 
 ```json
 {
   "OAuth": {
     "CallbackScheme": "yourappscheme",
+    "JwtKey": "yoursecretkey",
     "Apple": {
       "ServiceId": "{Apple Service Id}",
       "TeamId": "{Your Apple Team Id}",
@@ -44,6 +45,10 @@ The only required part of the configuration is the CallbackScheme. This can be a
 }
 ```
 
+### Jwt
+
+In order to better assist you in providing authentication with your API the library will automatically wrap any claims into a self signed JWT. By default if no key is provided it will use a development key. You should be sure to update this for production scenarios. After your user has been authenticated you can use the AccessToken to authenticate with your API. Within this JWT you may find an original access token from the OAuth provider. If you need to access any API from Google or Microsoft for example you can use the original access token to authenticate with the API.
+
 ### Apple Configuration
 
 As with any app you will need to set up a new App Id in the Apple Developer Portal. Before you get very far you can grab the Team Id out of the Developer Portal. Just beneath your name in the Developer Portal you should see the Company Name / Team Name along with the Team Id `My Company - VK8ZR2JK2E`. You'll use the `VK8ZR2JK2E` as the Team Id in your configuration.
@@ -52,7 +57,7 @@ If you have not already created an App Id, you should start there. For this exam
 
 Once you've done this you should create a Key. Select the Keys option and then create a new Key. You can give it a name like `MyAppSIWA`, be sure to select the `Sign in with Apple` option. You'll need to click the configure button and select the Primary App Id that you created in the previous step, and hit save.
 
-> NOTE: 
+> NOTE:
 > When selecting the primary app id, it will show up like `My Awesome App (DKD783KDELD.com.example.myapp)`, where `DKD783KDELD` is the App Id. It will then show below a `Grouped App Id` like `DKD783KDELD.com.example.myapp.sid`.
 
 Once you have the Key, it should have downloaded with a file name like `AuthKey_IUK783KD3R9.p8`, where `IUK783KD3R9` is the Key Id that you will need for your configuration.

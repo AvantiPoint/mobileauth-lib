@@ -15,6 +15,7 @@ public class MobileAuthClaimsHandler : IMobileAuthClaimsHandler
         if(auth.Properties is not null)
         {
             claims["access_token"] = auth.Properties.GetTokenValue("access_token") ?? string.Empty;
+            claims["id_token"] = auth.Properties.GetTokenValue("id_token") ?? string.Empty;
             claims["refresh_token"] = auth.Properties.GetTokenValue("refresh_token") ?? string.Empty;
             claims["expires_in"] = (auth.Properties.ExpiresUtc?.ToUnixTimeSeconds() ?? -1).ToString();
         }
