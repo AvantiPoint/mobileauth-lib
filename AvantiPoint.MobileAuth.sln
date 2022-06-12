@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{64098382-030
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{C2F3B11F-60AC-4BE1-B01D-A15BCEA54B64}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemoMobileApp", "sample\DemoMobileApp\DemoMobileApp.csproj", "{1D8FD7CD-DFA6-451C-B41C-B4796D0D69C6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +27,12 @@ Global
 		{161986B4-EC99-4971-9560-6CE255D1472C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{161986B4-EC99-4971-9560-6CE255D1472C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{161986B4-EC99-4971-9560-6CE255D1472C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D8FD7CD-DFA6-451C-B41C-B4796D0D69C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D8FD7CD-DFA6-451C-B41C-B4796D0D69C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D8FD7CD-DFA6-451C-B41C-B4796D0D69C6}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{1D8FD7CD-DFA6-451C-B41C-B4796D0D69C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D8FD7CD-DFA6-451C-B41C-B4796D0D69C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D8FD7CD-DFA6-451C-B41C-B4796D0D69C6}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -32,6 +40,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{E2019D64-0A21-4502-B615-D752387BA232} = {64098382-030D-474A-977A-A6A5A3DE4352}
 		{161986B4-EC99-4971-9560-6CE255D1472C} = {C2F3B11F-60AC-4BE1-B01D-A15BCEA54B64}
+		{1D8FD7CD-DFA6-451C-B41C-B4796D0D69C6} = {C2F3B11F-60AC-4BE1-B01D-A15BCEA54B64}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6C9E9E68-E9EB-41A8-B635-638B7DE62801}
