@@ -1,4 +1,5 @@
-﻿using AspNet.Security.OAuth.Apple;
+﻿using System.Text.RegularExpressions;
+using AspNet.Security.OAuth.Apple;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
@@ -46,12 +47,18 @@ internal class AppleOAuthOptions
                 o.ClientId = ServiceId;
                 o.KeyId = KeyId;
                 o.TeamId = TeamId;
-
                 if (!string.IsNullOrEmpty(PrivateKey))
-                    o.PrivateKey = (k, c) => Task.FromResult(PrivateKey.AsMemory());
+                {
+                    var path = Path.Combine(appBuilder.Environment.ContentRootPath, "App_Data", $"Apple-AuthKey.p8");
+                    new FileInfo(path).Directory?.Create();
+                    File.WriteAllText(path, PrivateKey);
+                    o.UsePrivateKey(keyId =>
+                        appBuilder.Environment.ContentRootFileProvider.GetFileInfo(Path.Combine("App_Data", "Apple-AuthKey.p8")));
+                }
                 else
                     o.UsePrivateKey(keyId =>
                         appBuilder.Environment.ContentRootFileProvider.GetFileInfo(Path.Combine("App_Data", $"AuthKey_{keyId}.p8")));
+
                 o.SaveTokens = true;
             });
     }

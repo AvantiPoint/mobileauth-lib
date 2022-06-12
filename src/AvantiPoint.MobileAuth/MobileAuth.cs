@@ -111,9 +111,15 @@ public static class MobileAuth
             return;
         }
 
+        var ignoreSchemes = new[]
+        {
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            JwtBearerDefaults.AuthenticationScheme
+        };
+
         var provider = context.RequestServices.GetRequiredService<IAuthenticationSchemeProvider>();
         var schemes = await provider.GetAllSchemesAsync();
-        if(schemes is null || !schemes.Any(x => x.Name != CookieAuthenticationDefaults.AuthenticationScheme))
+        if(schemes is null || !schemes.Any(x => !ignoreSchemes.Contains(x.Name)))
         {
             context.Response.StatusCode = 204;
             context.Response.Headers.Add("Status", "No Authentication Schemes are configured");
