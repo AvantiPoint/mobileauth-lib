@@ -83,7 +83,8 @@ public static class MobileAuth
 
     private static async Task Signin(string scheme, HttpContext context)
     {
-        if(scheme.Equals(CookieAuthenticationDefaults.AuthenticationScheme, StringComparison.InvariantCultureIgnoreCase))
+        if(scheme.Equals(CookieAuthenticationDefaults.AuthenticationScheme, StringComparison.InvariantCultureIgnoreCase) ||
+            scheme.Equals(JwtBearerDefaults.AuthenticationScheme, StringComparison.InvariantCultureIgnoreCase))
         {
             context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
             context.Response.Headers.Add("Status", "Unsupported Scheme");
@@ -152,7 +153,7 @@ public static class MobileAuth
         }
 
         var handler = context.RequestServices.GetRequiredService<IMobileAuthClaimsHandler>();
-        var claims = await handler.GenerateClaims(context, auth, scheme);
+        var claims = await handler.GenerateClaims(context, auth, authenticationScheme.Name);
         if(!claims.Any())
         {
             context.Response.StatusCode = 401;
