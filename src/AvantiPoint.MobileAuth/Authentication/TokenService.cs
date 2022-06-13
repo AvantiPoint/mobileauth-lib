@@ -73,6 +73,8 @@ public class TokenService : ITokenService
         }
     }
 
+    public virtual ValueTask InvalidateToken(string token) => ValueTask.CompletedTask;
+
     public SymmetricSecurityKey GetKey()
     {
         var key = _options.JwtKey;

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using AvantiPoint.MobileAuth.Authentication;
 using AvantiPoint.MobileAuth.Configuration;
 using Microsoft.AspNetCore.Authentication;
@@ -125,13 +126,22 @@ public static class MobileAuth
     private static string GetKey(Claim claim) =>
         claim.Properties.Any() ? claim.Properties.First().Value : claim.Type;
 
-    private static Task Signout(HttpContext context, CancellationToken cancellationToken)
+    private static async Task Signout(HttpContext context, CancellationToken cancellationToken)
     {
         var provider = context.User.FindFirstValue("provider");
-        if (string.IsNullOrEmpty(provider))
-            return context.SignOutAsync();
+        var tokenService = context.RequestServices.GetRequiredService<ITokenService>();
+        string authHeader = context.Request.Headers.Authorization;
+        if(!string.IsNullOrEmpty(authHeader))
+        {
+            var token = Regex.Replace(authHeader, "Bearer", string.Empty).Trim();
+            if (!string.IsNullOrEmpty(token))
+                await tokenService.InvalidateToken(token);
+        }
 
-        return context.SignOutAsync(provider);
+        if (string.IsNullOrEmpty(provider))
+            await context.SignOutAsync();
+        else
+            await context.SignOutAsync(provider);
     }
 
     private static async Task Signin(string scheme, HttpContext context)
