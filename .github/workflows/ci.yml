@@ -19,8 +19,7 @@ jobs:
       checks: write
     with:
       name: Mobile Auth
-      install-workload: maui
-      solution-path: AvantiPoint.MobileAuth.sln
+      solution-path: build.slnf
       run-tests: false
       code-sign: true
     secrets:

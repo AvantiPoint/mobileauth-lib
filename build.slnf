@@ -1,0 +1,8 @@
+{
+  "solution": {
+    "path": "AvantiPoint.MobileAuth.sln",
+    "projects": [
+      "src\\AvantiPoint.MobileAuth\\AvantiPoint.MobileAuth.csproj"
+    ]
+  }
+}
