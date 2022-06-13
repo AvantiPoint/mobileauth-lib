@@ -1,6 +1,8 @@
-﻿namespace AvantiPoint.MobileAuth.Configuration;
+﻿using AvantiPoint.MobileAuth.Authentication;
 
-internal class OAuthLibraryOptions
+namespace AvantiPoint.MobileAuth.Configuration;
+
+internal class OAuthLibraryOptions : ITokenOptions
 {
     public string? CallbackScheme { get; set; }
 

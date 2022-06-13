@@ -1,4 +1,5 @@
 ﻿using System.Text.Encodings.Web;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Logging;
@@ -6,7 +7,7 @@ using Microsoft.Extensions.Options;
 
 namespace AvantiPoint.MobileAuth.Authentication;
 
-public class MobileJwtValidationHandler : JwtBearerHandler
+internal sealed class MobileJwtValidationHandler : JwtBearerHandler
 {
     private ITokenService _tokenService { get; }
 
@@ -27,6 +28,17 @@ public class MobileJwtValidationHandler : JwtBearerHandler
         Options.TokenValidationParameters.ValidAudience = host;
         Options.TokenValidationParameters.ValidIssuer = host;
         Options.TokenValidationParameters.IssuerSigningKey = _tokenService.GetKey();
+
+        string header = Request.Headers.Authorization;
+        if (string.IsNullOrEmpty(header))
+            return AuthenticateResult.NoResult();
+
+        var token = Regex.Replace(header, "Bearer", string.Empty).Trim();
+        if (string.IsNullOrEmpty(token))
+            return AuthenticateResult.NoResult();
+        else if (!await _tokenService.IsTokenValid(token))
+            return AuthenticateResult.Fail("No valid token found");
+
         return await base.HandleAuthenticateAsync();
     }
 }

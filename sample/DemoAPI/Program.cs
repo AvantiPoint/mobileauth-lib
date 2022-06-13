@@ -33,9 +33,10 @@ app.MapMobileAuthRoute();
 app.MapGet("profile", async context =>
 {
     context.Response.StatusCode = 200;
-    string token = Regex.Replace(context.Request.Headers.Authorization, "Bearer ", string.Empty);
-    var jwt = new JsonWebToken(token);
-    await context.Response.WriteAsJsonAsync(jwt.Claims.ToDictionary(x => x.Type, x => x.Value));
+    var userClaims = context.User.Claims;
+    var claim = userClaims.First();
+    var claims = context.User.Claims.ToDictionary(x => x.Properties.Any() ? x.Properties.First().Value : x.Type, x => x.Value);
+    await context.Response.WriteAsJsonAsync(claims);
 })
     .RequireAuthorization();
 

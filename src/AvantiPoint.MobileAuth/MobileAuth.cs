@@ -55,6 +55,7 @@ public static class MobileAuth
 
         appBuilder.Services.AddAuthorization()
             .AddSingleton(options)
+            .AddSingleton<ITokenOptions>(sp => sp.GetRequiredService<OAuthLibraryOptions>())
             .AddHttpContextAccessor();
 
         appBuilder.Services.TryAddScoped<IMobileAuthClaimsHandler, MobileAuthClaimsHandler>();
@@ -169,7 +170,7 @@ public static class MobileAuth
         var tokenService = context.RequestServices.GetRequiredService<ITokenService>();
         var outputClaims = new Dictionary<string, string>
         {
-            { "access_token", tokenService.BuildToken(claims) },
+            { "access_token", await tokenService.BuildToken(claims) },
             { "id_token", claims.ContainsKey("id_token") ? claims["id_token"] : string.Empty },
             { "expires_in", claims["expires_in"] }
         };
