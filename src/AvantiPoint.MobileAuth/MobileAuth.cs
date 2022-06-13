@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Claims;
 using AvantiPoint.MobileAuth.Authentication;
 using AvantiPoint.MobileAuth.Configuration;
 using Microsoft.AspNetCore.Authentication;
@@ -16,6 +17,8 @@ namespace AvantiPoint.MobileAuth;
 
 public static class MobileAuth
 {
+    private const string DefaultUserProfileRoute = "/api/users/me";
+
     public static WebApplicationBuilder AddMobileAuth(this WebApplicationBuilder appBuilder) =>
         appBuilder.AddMobileAuth(_ => { });
 
@@ -66,10 +69,18 @@ public static class MobileAuth
         return appBuilder;
     }
 
+    public static WebApplication MapDefaultMobileAuthRoutes(this WebApplication app) =>
+        app.MapMobileAuthRoute()
+           .MapMobileAuthLogoutRoute()
+           .MapMobileAuthUserClaimsRoute(DefaultUserProfileRoute);
+
     public static WebApplication MapMobileAuthRoute(this WebApplication app, string routePrefix = "mobileauth", string name = "signin")
     {
         if (routePrefix.EndsWith('/'))
             routePrefix = routePrefix.Substring(0, routePrefix.Length - 1);
+
+        if (routePrefix.StartsWith('/'))
+            routePrefix = routePrefix.Substring(1);
 
         app.MapGet($"/{routePrefix}/{{scheme}}", Signin)
            .Produces(302)
@@ -80,6 +91,47 @@ public static class MobileAuth
            .WithDisplayName(name);
 
         return app;
+    }
+
+    public static WebApplication MapMobileAuthLogoutRoute(this WebApplication app, string routePrefix = "mobileauth", string name = "signout")
+    {
+        if (routePrefix.EndsWith('/'))
+            routePrefix = routePrefix.Substring(0, routePrefix.Length - 1);
+
+        if (routePrefix.StartsWith('/'))
+            routePrefix = routePrefix.Substring(1);
+
+        app.MapGet($"/{routePrefix}/{name}", Signout)
+            .WithName(name)
+            .RequireAuthorization();
+        return app;
+    }
+
+    public static WebApplication MapMobileAuthUserClaimsRoute(this WebApplication app, string routeTemplate, string name = "user-profile")
+    {
+        app.MapGet(routeTemplate, GetProfile)
+           .RequireAuthorization()
+           .WithName(name);
+        return app;
+    }
+
+    private static Task GetProfile(HttpContext context, CancellationToken cancellationToken)
+    {
+        context.Response.StatusCode = 200;
+        var claims = context.User.Claims.ToDictionary(x => GetKey(x), x => x.Value);
+        return context.Response.WriteAsJsonAsync(claims);
+    }
+
+    private static string GetKey(Claim claim) =>
+        claim.Properties.Any() ? claim.Properties.First().Value : claim.Type;
+
+    private static Task Signout(HttpContext context, CancellationToken cancellationToken)
+    {
+        var provider = context.User.FindFirstValue("provider");
+        if (string.IsNullOrEmpty(provider))
+            return context.SignOutAsync();
+
+        return context.SignOutAsync(provider);
     }
 
     private static async Task Signin(string scheme, HttpContext context)

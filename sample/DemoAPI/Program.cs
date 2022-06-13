@@ -27,8 +27,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // maps https://{host}/mobileauth/{Apple|Google|Microsoft}
-app.MapMobileAuthRoute();
-app.MapUserProfile();
+app.MapDefaultMobileAuthRoutes();
+//app.MapMobileAuthRoute();
+//app.MapMobileAuthLogoutRoute();
+//app.MapMobileAuthUserClaimsRoute("/profile");
 
 app.Run();
 
