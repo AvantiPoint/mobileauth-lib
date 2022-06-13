@@ -71,7 +71,7 @@ public static class MobileAuth
         if (routePrefix.EndsWith('/'))
             routePrefix = routePrefix.Substring(0, routePrefix.Length - 1);
 
-        app.MapGet($"{routePrefix}/{{scheme}}", Signin)
+        app.MapGet($"/{routePrefix}/{{scheme}}", Signin)
            .Produces(302)
            .ProducesProblem(204)
            .ProducesProblem(404)

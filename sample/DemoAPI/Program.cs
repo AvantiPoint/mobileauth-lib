@@ -1,7 +1,5 @@
-using System.Text.RegularExpressions;
 using AvantiPoint.MobileAuth;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.IdentityModel.JsonWebTokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,15 +28,7 @@ app.UseAuthorization();
 
 // maps https://{host}/mobileauth/{Apple|Google|Microsoft}
 app.MapMobileAuthRoute();
-app.MapGet("profile", async context =>
-{
-    context.Response.StatusCode = 200;
-    var userClaims = context.User.Claims;
-    var claim = userClaims.First();
-    var claims = context.User.Claims.ToDictionary(x => x.Properties.Any() ? x.Properties.First().Value : x.Type, x => x.Value);
-    await context.Response.WriteAsJsonAsync(claims);
-})
-    .RequireAuthorization();
+app.MapUserProfile();
 
 app.Run();
 
