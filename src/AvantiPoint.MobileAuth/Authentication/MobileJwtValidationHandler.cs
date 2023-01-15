@@ -29,7 +29,7 @@ internal sealed class MobileJwtValidationHandler : JwtBearerHandler
         Options.TokenValidationParameters.ValidIssuer = host;
         Options.TokenValidationParameters.IssuerSigningKey = _tokenService.GetKey();
 
-        string header = Request.Headers.Authorization;
+        string? header = Request.Headers.Authorization;
         if (string.IsNullOrEmpty(header))
             return AuthenticateResult.NoResult();
 
