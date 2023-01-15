@@ -31,6 +31,8 @@ internal class AppleOAuthOptions
                 .AddOptions<AppleAuthenticationOptions>(AppleAuthenticationDefaults.AuthenticationScheme)
                 .Configure<IConfiguration, SecretClient>((o, configuration, client) =>
                 {
+                    o.Scope.Add("name");
+                    o.Scope.Add("email");
                     o.ClientId = ServiceId;
                     o.KeyId = KeyId;
                     o.TeamId = TeamId;
@@ -44,6 +46,8 @@ internal class AppleOAuthOptions
         else
             builder.AddApple(o =>
             {
+                o.Scope.Add("name");
+                o.Scope.Add("email");
                 o.ClientId = ServiceId;
                 o.KeyId = KeyId;
                 o.TeamId = TeamId;

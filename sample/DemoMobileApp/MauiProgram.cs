@@ -1,4 +1,4 @@
-﻿using DemoMobileApp.Services;
+using DemoMobileApp.Services;
 using DemoMobileApp.ViewModels;
 using Refit;
 
@@ -16,7 +16,9 @@ public static class MauiProgram
     {
         var builder = MauiApp.CreateBuilder();
         builder
-            .UseMauiApp<App>()
+            .UseMauiMicroMvvm<AppShell>(
+                "Resources/Styles/Colors.xaml", 
+                "Resources/Styles/Styles.xaml")
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -24,6 +26,7 @@ public static class MauiProgram
             });
 
         builder.Services.AddSingleton(WebAuthenticator.Default)
+            .AddSingleton(AppleSignInAuthenticator.Default)
             .AddSingleton(SecureStorage.Default)
             .AddRefitClient<IUserProfileService>()
             .AddTransient<MainPage>()

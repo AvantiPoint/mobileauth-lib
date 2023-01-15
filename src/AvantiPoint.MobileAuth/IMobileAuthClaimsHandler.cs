@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
 namespace AvantiPoint.MobileAuth;
 
 public interface IMobileAuthClaimsHandler
 {
-    ValueTask<Dictionary<string, string>> GenerateClaims(HttpContext context, AuthenticateResult auth, string scheme);
+    ValueTask<IEnumerable<Claim>> GenerateClaims(HttpContext context, AuthenticateResult auth, string scheme);
 }

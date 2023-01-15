@@ -1,12 +1,20 @@
 using AvantiPoint.MobileAuth;
-using Microsoft.AspNetCore.Authentication;
+using AvantiPoint.MobileAuth.Authentication;
+using DemoAPI.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add Custom Overrides for Token Validation & User Claims
+builder.Services.AddScoped<ITokenService, CustomTokenService>()
+    .AddScoped<IMobileAuthClaimsHandler, CustomClaimsHandler>();
 
 builder.AddMobileAuth(builder =>
 {
     // Add Additional Providers like Facebook, Twitter, LinkedIn, GitHub, etc...
 });
+
+builder.Services.AddDbContext<UserContext>(o => o.UseInMemoryDatabase("DemoApi"));
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -33,16 +41,3 @@ app.MapDefaultMobileAuthRoutes();
 //app.MapMobileAuthUserClaimsRoute("/profile");
 
 app.Run();
-
-// If needed provide this as a Scoped Service.
-public class CustomClaimsHandler : MobileAuthClaimsHandler
-{
-    public override ValueTask<Dictionary<string, string>> GenerateClaims(HttpContext context, AuthenticateResult auth, string scheme)
-    {
-        var claims = base.GenerateClaims(context, auth, scheme);
-
-        // Need to update a database or specify specific claims? You can do that here...
-
-        return claims;
-    }
-}

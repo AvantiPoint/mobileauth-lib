@@ -22,16 +22,15 @@ public class TokenService : ITokenService
         _options = options;
     }
 
-    public async ValueTask<string> BuildToken(IDictionary<string, string> userClaims)
+    public async ValueTask<string> BuildToken(IEnumerable<Claim> userClaims)
     {
         var expires = DateTimeOffset.UtcNow.AddMinutes(30);
         if (userClaims.ContainsKey("expires_in") &&
-            long.TryParse(userClaims["expires_in"], out var expires_in) &&
+            long.TryParse(userClaims.FindFirstValue("expires_in"), out var expires_in) &&
             expires_in > 0)
             expires = DateTimeOffset.FromUnixTimeSeconds(expires_in);
 
-        var claims = userClaims.Where(x => !string.IsNullOrEmpty(x.Value) && x.Value != "-1")
-            .Select(x => new Claim(x.Key, x.Value));
+        var claims = userClaims.Where(x => !string.IsNullOrEmpty(x.Value) && x.Value != "-1");
 
         var host = GetHost();
         var securityKey = GetKey();

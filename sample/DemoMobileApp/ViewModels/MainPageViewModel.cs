@@ -1,15 +1,18 @@
 ﻿using System.Collections.ObjectModel;
 using DemoMobileApp.Services;
+using MauiMicroMvvm;
+using Microsoft.Extensions.Logging;
 
 namespace DemoMobileApp.ViewModels;
 
-public class MainPageViewModel
+public class MainPageViewModel : MauiMicroViewModel
 {
     private ISecureStorage _storage { get; }
     private IWebAuthenticator _webAuthenticator { get; }
     private IUserProfileService _userProfile { get; }
 
-    public MainPageViewModel(ISecureStorage storage, IWebAuthenticator webAuthenticator, IUserProfileService userProfile)
+    public MainPageViewModel(ViewModelContext context, ISecureStorage storage, IWebAuthenticator webAuthenticator, IUserProfileService userProfile)
+        : base(context)
     {
         _storage = storage;
         _webAuthenticator = webAuthenticator;
@@ -28,7 +31,7 @@ public class MainPageViewModel
         {
             var result = await _webAuthenticator.AuthenticateAsync(new WebAuthenticatorOptions
             {
-                CallbackUrl = new Uri($"{Constants.CallbackScheme}"),
+                CallbackUrl = new Uri($"{Constants.CallbackScheme}://"),
                 Url = new Uri(Constants.BaseUrl)
             });
 
@@ -43,8 +46,9 @@ public class MainPageViewModel
                     Claims.Add(claim);
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Unexpected error occurred.");
         }
     }
 }

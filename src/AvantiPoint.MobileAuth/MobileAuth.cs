@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -19,6 +20,7 @@ namespace AvantiPoint.MobileAuth;
 public static class MobileAuth
 {
     private const string DefaultUserProfileRoute = "/api/users/me";
+    private const string Tag = nameof(MobileAuth);
 
     public static WebApplicationBuilder AddMobileAuth(this WebApplicationBuilder appBuilder) =>
         appBuilder.AddMobileAuth(_ => { });
@@ -27,7 +29,7 @@ public static class MobileAuth
     {
         var options = appBuilder.Configuration
             .GetSection("OAuth")
-            .Get<OAuthLibraryOptions>();
+            .Get<OAuthLibraryOptions>() ?? new OAuthLibraryOptions();
 
         if (string.IsNullOrEmpty(options.CallbackScheme))
             throw new ArgumentNullException(nameof(OAuthLibraryOptions.CallbackScheme));
@@ -87,6 +89,12 @@ public static class MobileAuth
            .Produces(302)
            .ProducesProblem(204)
            .ProducesProblem(404)
+           .WithTags(Tag)
+#if NET7_0_OR_GREATER
+           .WithSummary("OAuth Login Endpoint.")
+           .WithDescription("This will redirect to the appropriate OAuth provider such as Apple, Google or Microsoft based on the configured OAuth providers for the API.")
+           .WithOpenApi()
+#endif
            .AllowAnonymous()
            .WithName(name)
            .WithDisplayName(name);
@@ -103,6 +111,12 @@ public static class MobileAuth
             routePrefix = routePrefix.Substring(1);
 
         app.MapGet($"/{routePrefix}/{name}", Signout)
+            .WithTags(Tag)
+#if NET7_0_OR_GREATER
+            .WithSummary("Revokes user Token.")
+            .WithDescription("This will revoke the user's token effectively logging out the user.")
+            .WithOpenApi()
+#endif
             .WithName(name)
             .RequireAuthorization();
         return app;
@@ -111,6 +125,12 @@ public static class MobileAuth
     public static WebApplication MapMobileAuthUserClaimsRoute(this WebApplication app, string routeTemplate, string name = "user-profile")
     {
         app.MapGet(routeTemplate, GetProfile)
+           .WithTags(Tag)
+#if NET7_0_OR_GREATER
+           .WithSummary("Provides dictionary of user claims.")
+           .WithDescription("This will return the user claims for the currently authenticated user.")
+           .WithOpenApi()
+#endif
            .RequireAuthorization()
            .WithName(name);
         return app;
@@ -130,7 +150,7 @@ public static class MobileAuth
     {
         var provider = context.User.FindFirstValue("provider");
         var tokenService = context.RequestServices.GetRequiredService<ITokenService>();
-        string authHeader = context.Request.Headers.Authorization;
+        string? authHeader = context.Request.Headers.Authorization;
         if(!string.IsNullOrEmpty(authHeader))
         {
             var token = Regex.Replace(authHeader, "Bearer", string.Empty).Trim();
@@ -144,11 +164,13 @@ public static class MobileAuth
             await context.SignOutAsync(provider);
     }
 
-    private static async Task Signin(string scheme, HttpContext context)
+    private static async Task Signin(string scheme, ILoggerFactory loggerFactory, HttpContext context)
     {
+        var logger = loggerFactory.CreateLogger(nameof(MobileAuth));
         if(scheme.Equals(CookieAuthenticationDefaults.AuthenticationScheme, StringComparison.InvariantCultureIgnoreCase) ||
             scheme.Equals(JwtBearerDefaults.AuthenticationScheme, StringComparison.InvariantCultureIgnoreCase))
         {
+            logger.LogError($"'{scheme}' is an unsupported login provider.");
             context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
             context.Response.Headers.Add("Status", "Unsupported Scheme");
             await context.Response.WriteAsJsonAsync(new HttpValidationProblemDetails
@@ -163,6 +185,7 @@ public static class MobileAuth
         var options = context.RequestServices.GetRequiredService<OAuthLibraryOptions>();
         if(string.IsNullOrEmpty(options.CallbackScheme))
         {
+            logger.LogError($"No Callback Scheme is configured for {scheme}.");
             context.Response.StatusCode = 204;
             context.Response.Headers.Add("Status", "No Callback Scheme is configured");
             await context.Response.WriteAsJsonAsync(new HttpValidationProblemDetails
@@ -184,6 +207,7 @@ public static class MobileAuth
         var schemes = await provider.GetAllSchemesAsync();
         if(schemes is null || !schemes.Any(x => !ignoreSchemes.Contains(x.Name)))
         {
+            logger.LogError($"No authentication schemes defined.");
             context.Response.StatusCode = 204;
             context.Response.Headers.Add("Status", "No Authentication Schemes are configured");
             await context.Response.WriteAsJsonAsync(new HttpValidationProblemDetails
@@ -199,6 +223,7 @@ public static class MobileAuth
 
         if(authenticationScheme is null)
         {
+            logger.LogError($"No authentication scheme found matching {scheme}.");
             context.Response.StatusCode = 404;
             await context.Response.WriteAsJsonAsync(new HttpValidationProblemDetails
             {
@@ -233,8 +258,8 @@ public static class MobileAuth
         var outputClaims = new Dictionary<string, string>
         {
             { "access_token", await tokenService.BuildToken(claims) },
-            { "id_token", claims.ContainsKey("id_token") ? claims["id_token"] : string.Empty },
-            { "expires_in", claims["expires_in"] }
+            { "id_token", claims.FindFirstValue("id_token") ?? string.Empty },
+            { "expires_in", claims.FindFirstValue("expires_in") ?? string.Empty }
         };
 
         // Build the result url

@@ -2,37 +2,51 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:DemoMobileApp.ViewModels"
+             xmlns:converter="clr-namespace:DemoMobileApp.Converters"
              x:DataType="vm:MainPageViewModel"
              x:Class="DemoMobileApp.MainPage">
-  <CollectionView ItemsSource="{Binding Claims}">
-    <CollectionView.Header>
+  <ContentPage.Resources>
+    <ResourceDictionary>
+      <converter:IsAuthenticatedConverter x:Key="IsAuthenticated" />
+      <converter:IsAuthenticatedConverter Invert="True" x:Key="IsNotAuthenticated" />
+    </ResourceDictionary>
+  </ContentPage.Resources>
+  <VerticalStackLayout>
+    <VerticalStackLayout Spacing="25"
+                         Padding="20"
+                         VerticalOptions="Start"
+                         IsVisible="{Binding Claims,Converter={StaticResource IsNotAuthenticated}}">
       <Image Source="dotnet_bot.png"
              HorizontalOptions="Center"
              HeightRequest="150"
              Margin="0,15,0,20"/>
-    </CollectionView.Header>
-    <CollectionView.EmptyView>
-      <VerticalStackLayout Spacing="25"
-                           Padding="20"
-                           VerticalOptions="Start">
-        <Button Text="Sign in with Microsoft"
+      <Button Text="Sign in with Microsoft"
                 Command="{Binding LoginCommand}"
                 CommandParameter="microsoft" />
-        <Button Text="Sign in with Google"
+      <Button Text="Sign in with Google"
                 Command="{Binding LoginCommand}"
                 CommandParameter="google" />
-        <Button Text="Sign in with Apple"
+      <Button Text="Sign in with Apple"
                 Command="{Binding LoginCommand}"
                 CommandParameter="apple"
                 IsVisible="{OnPlatform Default=false,iOS=true,MacCatalyst=true}" />
-      </VerticalStackLayout>
-    </CollectionView.EmptyView>
-    <CollectionView.ItemTemplate>
-      <DataTemplate>
-        <Label Text="{Binding .}"
+    </VerticalStackLayout>
+
+    <CollectionView ItemsSource="{Binding Claims}"
+                    IsVisible="{Binding Claims, Converter={StaticResource IsAuthenticated}}">
+      <CollectionView.Header>
+        <Image Source="dotnet_bot.png"
+             HorizontalOptions="Center"
+             HeightRequest="150"
+             Margin="0,15,0,20"/>
+      </CollectionView.Header>
+      <CollectionView.ItemTemplate>
+        <DataTemplate>
+          <Label Text="{Binding ., TargetNullValue='Null Ref'}"
                Margin="15,5"/>
-      </DataTemplate>
-    </CollectionView.ItemTemplate>
-  </CollectionView>
+        </DataTemplate>
+      </CollectionView.ItemTemplate>
+    </CollectionView>
+  </VerticalStackLayout>
 
 </ContentPage>

@@ -6,9 +6,12 @@ namespace AvantiPoint.MobileAuth;
 
 public class MobileAuthClaimsHandler : IMobileAuthClaimsHandler
 {
-    public virtual ValueTask<Dictionary<string, string>> GenerateClaims(HttpContext context, AuthenticateResult auth, string scheme)
+    public virtual ValueTask<IEnumerable<Claim>> GenerateClaims(HttpContext context, AuthenticateResult auth, string scheme)
     {
-        var claims = GetClaims(auth);
+        if (auth.Principal is null)
+            throw new NullReferenceException("The Authentication Result Principal is null.");
+
+        var claims = GetClaims(auth.Principal);
 
         claims["provider"] = scheme;
 
@@ -22,7 +25,8 @@ public class MobileAuthClaimsHandler : IMobileAuthClaimsHandler
 
         ConfigureName(ref claims);
 
-        return ValueTask.FromResult(claims);
+        return ValueTask.FromResult(claims.Where(x => !string.IsNullOrEmpty(x.Value) && x.Value != "-1")
+            .Select(x => new Claim(x.Key, x.Value)));
     }
 
     private static void ConfigureName(ref Dictionary<string, string> claims)
@@ -33,13 +37,24 @@ public class MobileAuthClaimsHandler : IMobileAuthClaimsHandler
             claims["name"] = $"{givenname} {surname}".Trim();
     }
 
-    private static Dictionary<string, string> GetClaims(AuthenticateResult auth) =>
-        new()
-        {
-            { "email", auth.Principal.FindFirstValue(ClaimTypes.Email) },
-            { "name", auth.Principal.FindFirstValue(ClaimTypes.Name) },
-            { "given_name", auth.Principal.FindFirstValue(ClaimTypes.GivenName) },
-            { "surname", auth.Principal.FindFirstValue(ClaimTypes.Surname) },
-            { "provider_id", auth.Principal.FindFirstValue(ClaimTypes.NameIdentifier) }
-        };
+    private static Dictionary<string, string> GetClaims(ClaimsPrincipal principal)
+    {
+        var claims = new Dictionary<string, string>();
+
+        AddClaim(ref claims, "email", principal.FindFirstValue(ClaimTypes.Email));
+        AddClaim(ref claims, "name", principal.FindFirstValue(ClaimTypes.Name));
+        AddClaim(ref claims, "given_name", principal.FindFirstValue(ClaimTypes.GivenName));
+        AddClaim(ref claims, "surname", principal.FindFirstValue(ClaimTypes.Surname));
+        AddClaim(ref claims, "provider_id", principal.FindFirstValue(ClaimTypes.NameIdentifier));
+        return claims;
+    }
+
+    private static void AddClaim(ref Dictionary<string, string> claims, string claim, string? value)
+    {
+        if (!claims.ContainsKey(claim) && !string.IsNullOrEmpty(value))
+            claims[claim] = value;
+    }
+
+    protected static string? FindFirstValue(IEnumerable<Claim> claims, string type) =>
+        claims.FirstOrDefault(x => x.Type== type)?.Value;
 }
