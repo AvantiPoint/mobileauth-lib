@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <WarningsAsErrors>true</WarningsAsErrors>
     <Description>The MobileAuth Library is designed to quickly stand up an OAuth endpoint for Apple, Google, &amp; Microsoft providers with the flexibility of customizing additional ones or only providing ones that you provide a configuration for. This makes it easy to stand up a minimal API with only a few lines of code.</Description>
     <PackageTags>apple;google;microsoft;oauth;minimal api</PackageTags>
     <EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
@@ -15,11 +16,27 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="AspNet.Security.OAuth.Apple" Version="6.0.6" />
-    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.3.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="6.0.6" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.6" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="6.0.6" />
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.4.0" />
   </ItemGroup>
+
+  <Choose>
+    <When Condition="$(TargetFramework) == 'net6.0'">
+      <ItemGroup>
+        <PackageReference Include="AspNet.Security.OAuth.Apple" Version="6.0.14" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="6.0.13" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.13" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="6.0.13" />
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFramework) == 'net7.0'">
+      <ItemGroup>
+        <PackageReference Include="AspNet.Security.OAuth.Apple" Version="7.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="7.0.2" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.2" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="7.0.2" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.2" />
+      </ItemGroup>
+    </When>
+  </Choose>
 
 </Project>
