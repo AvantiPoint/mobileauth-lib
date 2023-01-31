@@ -1,13 +1,19 @@
+using System.Diagnostics.Eventing.Reader;
 using System.Net;
+using System.Reflection.PortableExecutable;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using AvantiPoint.MobileAuth.Authentication;
 using AvantiPoint.MobileAuth.Configuration;
+using AvantiPoint.MobileAuth.Http;
+using AvantiPoint.MobileAuth.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -25,11 +31,16 @@ public static class MobileAuth
     public static WebApplicationBuilder AddMobileAuth(this WebApplicationBuilder appBuilder) =>
         appBuilder.AddMobileAuth(_ => { });
 
-    public static WebApplicationBuilder AddMobileAuth(this WebApplicationBuilder appBuilder, Action<AuthenticationBuilder> configureAuthenticationBuilder)
+    public static WebApplicationBuilder AddMobileAuth(this WebApplicationBuilder appBuilder, Action<MobileAuthenticationBuilder> configureAuthenticationBuilder)
     {
         var options = appBuilder.Configuration
             .GetSection("OAuth")
             .Get<OAuthLibraryOptions>() ?? new OAuthLibraryOptions();
+
+        if(string.IsNullOrEmpty(options.AuthPath))
+        {
+            options.AuthPath = "mobileauth";
+        }
 
         if (string.IsNullOrEmpty(options.CallbackScheme))
             throw new ArgumentNullException(nameof(OAuthLibraryOptions.CallbackScheme));
@@ -42,7 +53,8 @@ public static class MobileAuth
             })
             .AddCookie(o =>
             {
-                o.LoginPath = "/mobileauth/";
+                o.LoginPath = options.Signin;
+                o.LogoutPath = options.Signout;
             });
         authBuilder.AddScheme<JwtBearerOptions, MobileJwtValidationHandler>(JwtBearerDefaults.AuthenticationScheme, null, options =>
             {
@@ -64,10 +76,9 @@ public static class MobileAuth
             .AddSingleton<ITokenOptions>(sp => sp.GetRequiredService<OAuthLibraryOptions>())
             .AddHttpContextAccessor();
 
-        appBuilder.Services.TryAddScoped<IMobileAuthClaimsHandler, MobileAuthClaimsHandler>();
-        appBuilder.Services.TryAddScoped<ITokenService, TokenService>();
-
-        configureAuthenticationBuilder(authBuilder);
+        var mobileAuthBuilder = new MobileAuthenticationBuilder(authBuilder);
+        configureAuthenticationBuilder(mobileAuthBuilder);
+        mobileAuthBuilder.ConfigureDefaultServices();
 
         return appBuilder;
     }
@@ -77,15 +88,14 @@ public static class MobileAuth
            .MapMobileAuthLogoutRoute()
            .MapMobileAuthUserClaimsRoute(DefaultUserProfileRoute);
 
-    public static WebApplication MapMobileAuthRoute(this WebApplication app, string routePrefix = "mobileauth", string name = "signin")
+    private static string GetPath(PathString path, string defaultValue) =>
+        path.HasValue ? path.Value : defaultValue;
+
+    public static WebApplication MapMobileAuthRoute(this WebApplication app, string name = "signin")
     {
-        if (routePrefix.EndsWith('/'))
-            routePrefix = routePrefix.Substring(0, routePrefix.Length - 1);
+        var options = app.Services.GetRequiredService<OAuthLibraryOptions>();
 
-        if (routePrefix.StartsWith('/'))
-            routePrefix = routePrefix.Substring(1);
-
-        app.MapGet($"/{routePrefix}/{{scheme}}", Signin)
+        app.MapGet($"{options.Signin}{{scheme}}", Signin)
            .Produces(302)
            .ProducesProblem(204)
            .ProducesProblem(404)
@@ -102,15 +112,11 @@ public static class MobileAuth
         return app;
     }
 
-    public static WebApplication MapMobileAuthLogoutRoute(this WebApplication app, string routePrefix = "mobileauth", string name = "signout")
+    public static WebApplication MapMobileAuthLogoutRoute(this WebApplication app, string name = "signout")
     {
-        if (routePrefix.EndsWith('/'))
-            routePrefix = routePrefix.Substring(0, routePrefix.Length - 1);
+        var options = app.Services.GetRequiredService<OAuthLibraryOptions>();
 
-        if (routePrefix.StartsWith('/'))
-            routePrefix = routePrefix.Substring(1);
-
-        app.MapGet($"/{routePrefix}/{name}", Signout)
+        app.MapGet(options.Signout, Signout)
             .WithTags(Tag)
 #if NET7_0_OR_GREATER
             .WithSummary("Revokes user Token.")
@@ -155,13 +161,13 @@ public static class MobileAuth
         {
             var token = Regex.Replace(authHeader, "Bearer", string.Empty).Trim();
             if (!string.IsNullOrEmpty(token))
+            {
                 await tokenService.InvalidateToken(token);
+                await context.Ok();
+            }
         }
 
-        if (string.IsNullOrEmpty(provider))
-            await context.SignOutAsync();
-        else
-            await context.SignOutAsync(provider);
+        await context.BadRequest();
     }
 
     private static async Task Signin(string scheme, ILoggerFactory loggerFactory, HttpContext context)

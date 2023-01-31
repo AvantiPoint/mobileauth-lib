@@ -32,7 +32,7 @@ public class MainPageViewModel : MauiMicroViewModel
             var result = await _webAuthenticator.AuthenticateAsync(new WebAuthenticatorOptions
             {
                 CallbackUrl = new Uri($"{Constants.CallbackScheme}://"),
-                Url = new Uri(Constants.BaseUrl)
+                Url = new Uri(new Uri(Constants.BaseUrl), $"mobileauth/{scheme}")
             });
 
             await _storage.SetAsync("access_token", result.AccessToken);

@@ -116,10 +116,12 @@ By Default the library will attempt to return the following claims:
 - The Access & Refresh Tokens
 - When the Token Expires as a UTC time in Unix Seconds
 
-Whether you need to inject some additional logic or if you just want to customize how the claims are returned, it is very easy to do. You simply need to implement `IMobileAuthClaimsHandler` and register it with the `IServiceCollection` like so:
+Whether you need to inject some additional logic or if you just want to customize how the claims are returned, it is very easy to do. You simply need to implement `IMobileAuthClaimsHandler` and register it with the `MobileAuthenticationBuilder` like so:
 
 ```cs
-builder.Services.AddScoped<IMobileAuthClaimsHandler, MyCustomMobileAuthClaimsHandler>();
+builder.AddMobileAuth(auth => {
+    auth.AddMobileAuthClaimsHandler<MyCustomMobileAuthClaimsHandler>();
+});
 ```
 
 ## Run The Sample

@@ -3,4 +3,6 @@
 public interface ITokenOptions
 {
     string? JwtKey { get; }
+    bool OverrideTokenExpiration { get; }
+    TimeSpan DefaultExpiration { get; }
 }
