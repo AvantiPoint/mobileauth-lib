@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:DemoMobileApp.ViewModels"
              xmlns:converter="clr-namespace:DemoMobileApp.Converters"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:DataType="vm:MainPageViewModel"
              x:Class="DemoMobileApp.MainPage">
   <ContentPage.Resources>
@@ -35,10 +36,14 @@
     <CollectionView ItemsSource="{Binding Claims}"
                     IsVisible="{Binding Claims, Converter={StaticResource IsAuthenticated}}">
       <CollectionView.Header>
-        <Image Source="dotnet_bot.png"
+        <Image
              HorizontalOptions="Center"
              HeightRequest="150"
-             Margin="0,15,0,20"/>
+             Margin="0,15,0,20">
+          <Image.Source>
+            <toolkit:GravatarImageSource Email="{Binding Email}" />
+          </Image.Source>
+        </Image>
       </CollectionView.Header>
       <CollectionView.ItemTemplate>
         <DataTemplate>

@@ -1,7 +1,8 @@
+using System.Diagnostics;
 using AvantiPoint.MobileAuth;
-using AvantiPoint.MobileAuth.Authentication;
 using DemoAPI.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +19,23 @@ builder.AddMobileAuth(auth =>
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+var versionInfo = FileVersionInfo.GetVersionInfo(typeof(MobileAuth).Assembly.Location);
+var version = $"{versionInfo.FileMajorPart}.{versionInfo.ProductMinorPart}.{versionInfo.ProductBuildPart}";
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc($"v1", new OpenApiInfo
+    {
+        Title = "Mobile Auth - Demo",
+        Contact = new OpenApiContact
+        {
+            Name = "AvantiPoint",
+            Email = "hello@avantipoint.com",
+            Url = new Uri("https://avantipoint.com")
+        },
+        Description = "This is a demo api for the AvantiPoint Mobile Auth library. Do not use this API for production. For more information please visit https://github.com/avantipoint/mobileauth-lib",
+        Version = version
+    });
+});
 
 var app = builder.Build();
 
@@ -26,7 +43,10 @@ var app = builder.Build();
 
 app.UseHttpsRedirection();
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(o =>
+{
+    o.InjectStylesheet("https://cdn.avantipoint.com/theme/swagger/style.css");
+});
 
 app.UseAuthentication();
 app.UseAuthorization();

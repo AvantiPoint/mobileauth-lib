@@ -1,3 +1,4 @@
+using CommunityToolkit.Maui;
 using DemoMobileApp.Services;
 using DemoMobileApp.ViewModels;
 using Refit;
@@ -19,6 +20,7 @@ public static class MauiProgram
             .UseMauiMicroMvvm<AppShell>(
                 "Resources/Styles/Colors.xaml", 
                 "Resources/Styles/Styles.xaml")
+            .UseMauiCommunityToolkit()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

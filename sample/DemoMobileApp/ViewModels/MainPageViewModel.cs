@@ -23,6 +23,12 @@ public class MainPageViewModel : MauiMicroViewModel
 
     public ObservableCollection<string> Claims { get; }
 
+    public string Email
+    {
+        get => Get<string>();
+        set => Set(value);
+    }
+
     public Command<string> LoginCommand { get; }
 
     private async void OnLoginCommandExecuted(string scheme)
@@ -44,6 +50,9 @@ public class MainPageViewModel : MauiMicroViewModel
                 var claims = response.Content.Select(x => $"{x.Key}: {x.Value}");
                 foreach (var claim in claims)
                     Claims.Add(claim);
+
+                if (response.Content.TryGetValue("email", out var email))
+                    Email = email;
             }
         }
         catch (Exception ex)

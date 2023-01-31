@@ -50,6 +50,7 @@
 
   <ItemGroup>
     <PackageReference Include="AvantiPoint.MauiMicroMvvm" Version="0.1.3" />
+    <PackageReference Include="CommunityToolkit.Maui" Version="4.0.0" />
     <PackageReference Include="Refit" Version="6.3.2" />
   </ItemGroup>
 
